@@ -1,8 +1,8 @@
 /*
  * The home page under the fold, on the same ink ground as the hero: a wall
- * of names, the three calls, the expressions on one face, the numbers and a
- * last call to install. Every value shown is read from the library or
- * computed by it, never typed.
+ * of names, the three calls, the expressions on one face, the variants, the
+ * numbers and a last call to install. Every value shown is read from the
+ * library or computed by it, never typed.
  */
 import {
   COLORS,
@@ -12,6 +12,7 @@ import {
   LATEST,
   Peek,
   toSvg,
+  VARIANTS,
 } from '@doan-labs/peek'
 import * as stylex from '@stylexjs/stylex'
 import { Link } from '@tanstack/react-router'
@@ -22,6 +23,7 @@ import { cheer } from '@/components/creatures'
 import { DoanMark } from '@/components/doan-mark'
 import { line, MANAGERS, type Manager } from '@/components/figures/install'
 import { PropsPlayground } from '@/components/figures/react'
+import { type Framework, FrameworkLogo } from '@/components/framework-logo'
 import { ManagerLogo } from '@/components/manager-logo'
 import { REPO } from '@/lib/docs'
 import { CURVE, LAND, NONE } from '@/lib/motion'
@@ -127,6 +129,33 @@ export function InstallPill() {
   )
 }
 
+const FRAMEWORK_NAME: Record<Framework, string> = {
+  react: 'React',
+  vue: 'Vue',
+  svelte: 'Svelte',
+}
+
+/** The line's subtitle: one sentence, each framework a way into its own
+ * docs page. Set in the line's sans so it never reads as another control. */
+export function Frameworks() {
+  const link = (fw: Framework) => (
+    <Link
+      to='/docs/$slug'
+      params={{ slug: fw }}
+      {...stylex.props(styles.framework)}
+    >
+      <FrameworkLogo fw={fw} />
+      {FRAMEWORK_NAME[fw]}
+    </Link>
+  )
+  return (
+    <p {...stylex.props(styles.frameworks)}>
+      Deterministic SVG faces for {link('react')}, {link('vue')} and{' '}
+      {link('svelte')}
+    </p>
+  )
+}
+
 /** The way in: the docs. */
 export function DocsButton() {
   return (
@@ -143,6 +172,7 @@ export function HomeSections() {
       <Wall />
       <Calls />
       <Moods />
+      <Drawings />
       <Numbers />
       <Footer />
     </div>
@@ -226,8 +256,8 @@ const who = identify(SAMPLE)
 
 const CALLS: { title: string; note: string; code: string; lang: Lang }[] = [
   {
-    title: 'React',
-    note: 'A component. Server rendered, hydrates to the same face.',
+    title: 'React, Vue, Svelte',
+    note: 'A component in each. Server rendered, hydrates to the same face.',
     code: `<Peek name="${SAMPLE}" ${outfitJsx} animate />`,
     lang: 'tsx',
   },
@@ -249,14 +279,24 @@ function Calls() {
   return (
     <section {...stylex.props(styles.section)}>
       <Head n='02' label='Three calls' title='A string in, a face out'>
-        One package with no runtime dependencies. Render it in React, or get the
-        SVG as text anywhere JavaScript runs.
+        One package with no runtime dependencies. Render it in React, Vue or
+        Svelte, or get the SVG as text anywhere JavaScript runs.
       </Head>
       <div {...stylex.props(styles.calls)}>
         {CALLS.map((c) => (
           <article key={c.title} {...stylex.props(styles.call)}>
             <div {...stylex.props(styles.callTop)}>
-              <h3 {...stylex.props(styles.h3)}>{c.title}</h3>
+              <h3 {...stylex.props(styles.h3, styles.callHead)}>
+                {c.title === 'React, Vue, Svelte'
+                  ? (['react', 'vue', 'svelte'] as const).map((fw, i) => (
+                      <span key={fw} {...stylex.props(styles.callFw)}>
+                        <FrameworkLogo fw={fw} />
+                        {FRAMEWORK_NAME[fw]}
+                        {i < 2 ? ',' : ''}
+                      </span>
+                    ))
+                  : c.title}
+              </h3>
               <Peek
                 name={SAMPLE}
                 {...(c.title !== 'Just the identity' ? outfit : {})}
@@ -308,7 +348,49 @@ function Moods() {
   )
 }
 
-/* ---------- 04 · The numbers ---------- */
+/* ---------- 04 · The variants ---------- */
+
+const TRIO = ['Linh', 'Kwame', 'Thu Hà', 'Alan Turing', 'Hedy Lamarr', 'Duc']
+
+function Drawings() {
+  const [on, setOn] = useState<string | null>(null)
+  return (
+    <section {...stylex.props(styles.section)}>
+      <Head n='04' label='Variants' title='One face, three drawings'>
+        A variant changes how a face is drawn, never who it is. Peek is the
+        default, Haze fills the body with soft color, Bloc rebuilds it from a
+        square, a circle and a bar.
+      </Head>
+      <ul {...stylex.props(styles.trios)}>
+        {TRIO.map((name) => (
+          <li
+            key={name}
+            onPointerEnter={() => setOn(name)}
+            onPointerLeave={() => setOn((v) => (v === name ? null : v))}
+            {...stylex.props(styles.tile)}
+          >
+            <span {...stylex.props(styles.trio)}>
+              {VARIANTS.map((v) => (
+                <Peek
+                  key={v}
+                  name={name}
+                  variant={v}
+                  size={72}
+                  expression={on === name ? 'happy' : 'normal'}
+                  gaze='pointer'
+                  animate
+                />
+              ))}
+            </span>
+            <span {...stylex.props(styles.tileName)}>{name}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/* ---------- 05 · The numbers ---------- */
 
 const FACTS = [
   [Object.keys(FACES).length, 'faces'],
@@ -444,6 +526,36 @@ const styles = stylex.create({
     transitionDuration: '0.2s',
   },
   tabOn: { color: { default: colors['--bone'], ':hover': colors['--bone'] } },
+  // hugs the line above and keeps the controls at arm's length
+  frameworks: {
+    margin: 0,
+    marginBottom: 'clamp(4px, 1.2svh, 12px)',
+    fontFamily: fonts['--sans'],
+    fontSize: 'clamp(15px, 2svh, 18px)',
+    lineHeight: 1.5,
+    letterSpacing: '-0.01em',
+    textAlign: 'center',
+    textWrap: 'balance',
+    color: colors['--muted'],
+  },
+  framework: {
+    ...RING,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    verticalAlign: 'bottom',
+    borderRadius: '4px',
+    color: colors['--bone'],
+    textDecorationLine: 'underline',
+    textDecorationThickness: '1px',
+    textUnderlineOffset: '4px',
+    textDecorationColor: {
+      default: 'transparent',
+      ':hover': colors['--muted'],
+    },
+    transitionProperty: 'text-decoration-color',
+    transitionDuration: '0.2s',
+  },
   tabPill: {
     position: 'absolute',
     inset: 0,
@@ -576,6 +688,15 @@ const styles = stylex.create({
     gap: '12px',
   },
   tileName: { ...MICRO, color: colors['--muted'], textTransform: 'none' },
+  trios: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+    gap: '36px 16px',
+  },
+  trio: { display: 'flex', gap: '8px' },
   calls: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -594,6 +715,14 @@ const styles = stylex.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  callHead: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: '10px',
+    rowGap: '4px',
+  },
+  callFw: { display: 'inline-flex', alignItems: 'center', gap: '6px' },
   h3: {
     margin: 0,
     fontSize: '20px',
@@ -611,9 +740,13 @@ const styles = stylex.create({
     fontFamily: fonts['--mono'],
     fontSize: '13px',
     lineHeight: 1.7,
-    overflowX: 'auto',
   },
-  codeLine: { display: 'block', whiteSpace: 'pre' },
+  // a long call wraps inside the card, never scrolls
+  codeLine: {
+    display: 'block',
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'anywhere',
+  },
   k_key: { color: colors['--signal'] },
   k_str: { color: colors['--clay'] },
   k_tag: { color: colors['--lav'] },

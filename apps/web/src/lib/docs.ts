@@ -5,12 +5,16 @@
  */
 import {
   ACCESSORIES,
+  BLOC,
   COLORS,
   EXPRESSIONS,
   FACES,
+  HAZE,
   LATEST,
   PARTS,
   type PeekProps,
+  VARIANTS,
+  WHEEL,
 } from '@doan-labs/peek'
 
 export const SITE = 'https://peek.doan-labs.com'
@@ -44,6 +48,7 @@ export type FigureId =
   | 'expressions'
   | 'gaze-pad'
   | 'alive'
+  | 'variant-trio'
 
 export type DocPage = {
   slug: string
@@ -78,6 +83,12 @@ export const PAGES: DocPage[] = [
         code: '<Peek name="Linh" eyewear="glasses" headwear="sprout" animate />',
         lang: 'tsx',
       },
+      { h: 'Draw it another way' },
+      'Three variants draw the same face: `peek`, the default; `haze`, the body in soft color; and `bloc`, flat geometry with two tones and one bar. A variant never changes who the face is.',
+      {
+        code: '<Peek name="Linh" variant="haze" />\n<Peek name="Linh" variant="bloc" animate />',
+        lang: 'tsx',
+      },
       { h: 'Same name, same face' },
       'Nothing is stored and nothing is fetched. The face is worked out from the name every time, so the server and the browser draw the same one:',
       { figure: 'same-face' },
@@ -102,7 +113,7 @@ export const PAGES: DocPage[] = [
       { figure: 'install', md: '```bash\nnpm install @doan-labs/peek\n```' },
       {
         list: [
-          '`<Peek>` needs React 19.',
+          '`<Peek>` needs React 19, Vue 3.5 or Svelte 5.20. Install the one you use; the others stay optional.',
           '`toSvg` and `identify` need nothing: any JavaScript runtime.',
         ],
       },
@@ -118,7 +129,7 @@ export const PAGES: DocPage[] = [
     blocks: [
       { h: 'Two layers' },
       {
-        code: `style: peek (the currently implemented style)
+        code: `variant: peek · haze · bloc (how it is drawn, never who)
 ├─ identity: face, color, anatomy
 │  ├─ parts: eyes, brows, mouth, cheeks, trait
 │  ├─ proportions: seeded persona
@@ -289,6 +300,60 @@ identify('Linh').headwear // 'none' at peek@1`,
     ],
   },
   {
+    slug: 'variants',
+    group: 'Concepts',
+    title: 'Variants',
+    blurb: 'How a face is drawn. Never who it is.',
+    task: 'Draw the Peek avatars in this app in a variant: haze for soft color, bloc for flat geometry.',
+    blocks: [
+      `A variant changes the drawing and keeps the identity. The same name gets the same face, color, parts and persona in every variant, so a user stays recognizable when you switch. One of: ${one(VARIANTS)}. Default \`peek\`.`,
+      {
+        figure: 'variant-trio',
+        md: `\`\`\`tsx\n${VARIANTS.map(
+          (v) => `<Peek name="Linh"${v === 'peek' ? '' : ` variant="${v}"`} />`,
+        ).join('\n')}\n\`\`\``,
+      },
+      {
+        code: `<Peek name="Linh" variant="haze" />
+<Peek name="Linh" variant="bloc" expression="angry" animate />
+toSvg('Linh', { variant: 'bloc', frame: 'bone' })`,
+        lang: 'tsx',
+      },
+      { h: 'Haze' },
+      'The body is filled with soft color: its own ink, a deeper blob at the bottom, a glow at the top, and a tint from one of its two neighbors on the hue wheel. The name picks the neighbor and where each blob sits, so two faces of one color haze apart. The face on top is unchanged. Below 32px the haze steps down to a lighter level, so small avatars stay clean.',
+      {
+        rows: [
+          ['Ink', 'Tint (warm · cool)', 'Glow'],
+          ...WHEEL.map((c, i) => {
+            const near = (d: number) =>
+              WHEEL[(i + d + WHEEL.length) % WHEEL.length]!
+            return [
+              `\`${c}\``,
+              `\`${near(-1)}\` ${HAZE[near(-1)].tint} · \`${near(1)}\` ${HAZE[near(1)].tint}`,
+              HAZE[c].glow,
+            ]
+          }),
+        ],
+      },
+      { h: 'Bloc' },
+      'Every face rebuilt from a square, a circle and a bar. The four silhouettes stay, the body is cut in two down the middle, both brows become one ink bar, and the trait sits as a block on the upper right outline. No round corners, no gradients, no outlines.',
+      {
+        list: [
+          'The left half is a strong ink of the face color. The right half is the body ink on dark frames and the deep ink on `bone` and `paper`, so the face never sinks into a light page.',
+          'Eyes are paper discs with a pupil, solid beads or rings. Expressions cut them: from below when smiling, from above when drowsy, at a slant when angry, sad or confused, where the bar also breaks into a V or a caret.',
+          'Cheeks and accessories are not drawn in Bloc. The identity still carries them, so switching back to `peek` shows them again.',
+        ],
+      },
+      {
+        rows: [
+          ['Ink', 'Strong'],
+          ...Object.entries(BLOC).map(([c, hex]) => [`\`${c}\``, hex]),
+        ],
+      },
+      'Every variant draws all 11 expressions, any gaze, every frame and the riso print, and animates with `animate`.',
+    ],
+  },
+  {
     slug: 'react',
     group: 'Usage',
     title: 'React',
@@ -322,6 +387,7 @@ import { Peek } from '@doan-labs/peek'
           ['`title`', '`string`, or `false` to hide it', 'the name'],
           ['`riso`', '`boolean`, print grain from 120px', '`false`'],
           ['`version`', '`number`', `\`${LATEST}\``],
+          ['`variant`', one(VARIANTS), '`peek`'],
           ['`face` `color` `eyes` …', 'see Identity', 'hashed'],
           ['`eyewear`', one(ACCESSORIES.eyewear), '`none`'],
           ['`headwear`', one(ACCESSORIES.headwear), '`none`'],
@@ -331,6 +397,53 @@ import { Peek } from '@doan-labs/peek'
       },
       'Pass the wardrobe as props or spread a stored outfit. Every omitted slot defaults to `none` at `peek@1`. Changing a slot updates the drawing and preserves the other identity axes. The interactive example prints the exact accessory props you selected.',
       '`gaze="pointer"` follows the pointer and needs `animate`. Animation stops under `prefers-reduced-motion`.',
+    ],
+  },
+  {
+    slug: 'vue',
+    group: 'Usage',
+    title: 'Vue',
+    blurb: 'The `<Peek>` component for Vue 3.5.',
+    task: 'Render avatars in this Vue app with the Peek component.',
+    blocks: [
+      {
+        code: `<script setup lang="ts">
+import { Peek } from '@doan-labs/peek/vue'
+</script>
+
+<template>
+  <Peek name="Linh" />
+  <Peek name="Linh" :size="96" expression="happy" />
+  <Peek name="Linh" eyewear="glasses" headwear="sprout" animate gaze="pointer" />
+</template>`,
+        lang: 'tsx',
+        title: 'App.vue',
+      },
+      'The same props as the React component, and the same face for the same name. It renders the same markup on the server and the client, so it hydrates cleanly in Nuxt or any Vue SSR setup. With `animate`, the first paint is static and the face comes alive after mount.',
+      'Use `class` and `style` in place of `className` and `style`; both land on the `<svg>`. `@doan-labs/peek/vue` also exports `toSvg`, `identify` and the option lists, so a Vue app never needs React installed.',
+    ],
+  },
+  {
+    slug: 'svelte',
+    group: 'Usage',
+    title: 'Svelte',
+    blurb: 'The `<Peek>` component for Svelte 5.',
+    task: 'Render avatars in this Svelte app with the Peek component.',
+    blocks: [
+      {
+        code: `<script lang="ts">
+  import { Peek } from '@doan-labs/peek/svelte'
+  let online = $state(true)
+</script>
+
+<Peek name="Linh" />
+<Peek name="Linh" size={96} expression={online ? 'happy' : 'sleepy'} />
+<Peek name="Linh" eyewear="glasses" headwear="sprout" animate gaze="pointer" />`,
+        lang: 'tsx',
+        title: 'App.svelte',
+      },
+      'The same props as the React component, and the same face for the same name. It needs Svelte 5.20 or newer and ships as source, so your bundler compiles it like any other component. It renders the same markup on the server and the client, so it hydrates cleanly in SvelteKit. With `animate`, the first paint is static and the face comes alive after mount.',
+      'Use `class` and `style` in place of `className` and `style`; both land on the `<svg>`. `@doan-labs/peek/svelte` also exports `toSvg`, `identify` and the option lists, so a Svelte app never needs React installed.',
     ],
   },
   {
@@ -353,7 +466,7 @@ const svg = toSvg('Linh', {
         lang: 'ts',
       },
       'Same input, same bytes, on any machine. It takes the same options as `<Peek>`, minus `animate`, `className`, `style` and the pointer gaze.',
-      'The same wardrobe values produce the same geometry in React and `toSvg`. SVG export captures a static expression and gaze; `animate` and pointer tracking are React behaviors and are not embedded in the exported file.',
+      'The same wardrobe values produce the same geometry in the components and `toSvg`. SVG export captures a static expression and gaze; `animate` and pointer tracking are component behaviors and are not embedded in the exported file.',
       { figure: 'same-bytes' },
       { h: 'Serve it' },
       {
@@ -387,6 +500,25 @@ const svg = toSvg('Linh', {
     task: 'Upgrade @doan-labs/peek in this project to the latest release.',
     blocks: [
       'A pinned `version` keeps every face the same across upgrades.',
+      { h: '2.0.0 · October 21, 2026' },
+      'Faces leave React, and learn two new ways to be drawn.',
+      {
+        faces: [
+          { name: 'Linh', variant: 'haze', label: 'haze' },
+          { name: 'Linh', variant: 'bloc', label: 'bloc' },
+          { name: 'Thu Hà', variant: 'haze', label: 'haze' },
+          { name: 'Thu Hà', variant: 'bloc', label: 'bloc' },
+        ],
+        cycle: true,
+      },
+      {
+        list: [
+          '`<Peek>` for Vue 3.5 from `@doan-labs/peek/vue`, and for Svelte 5.20 from `@doan-labs/peek/svelte`.',
+          'Same props, same markup as React, animation included. Nothing changes for React apps.',
+          '`variant`: `peek`, `haze` or `bloc`. Default `peek`, so every existing face renders byte for byte as before.',
+          'A variant never changes identity: the same name keeps its face, color, parts and persona.',
+        ],
+      },
       { h: '1.1.0 · October 9, 2026' },
       'Faces get dressed.',
       {
@@ -462,7 +594,7 @@ ${toMarkdown(p)}
 `
 
 const INTRO =
-  '# Peek\n\n> A string in, a face out. Peek, from Doan Labs, turns a name into a deterministic SVG face, with expressions, gaze and animation on top. React component and plain SVG string. Six accessories in three independent wardrobe slots.'
+  '# Peek\n\n> A string in, a face out. Peek, from Doan Labs, turns a name into a deterministic SVG face, with expressions, gaze and animation on top. Components for React, Vue and Svelte, and a plain SVG string. Six accessories in three independent wardrobe slots.'
 
 export const llmsTxt = () => `${INTRO}
 
