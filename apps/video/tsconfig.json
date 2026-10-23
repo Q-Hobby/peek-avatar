@@ -1,0 +1,10 @@
+{
+  "extends": "@peek/typescript-config/react.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "remotion.config.ts"],
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["node"]
+  }
+}

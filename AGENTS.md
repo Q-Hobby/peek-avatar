@@ -36,6 +36,8 @@ Deploys to Cloudflare Workers as static assets: only the pages listed in
 `apps/web/dist/client`.
 `../avatars-poc/engine.js` is the prior sketch of the idea: string hash,
 seeded rng, palettes, pure SVG.
+`apps/video` is the launch videos, in Remotion. Its own `AGENTS.md`
+replaces the Motion rules below there.
 
 ## Motion
 
@@ -72,6 +74,7 @@ bun run dev            # turbo, apps/web on :5173
 bun run build
 bun run check-types
 bun run lint
+bun run video          # Remotion Studio for apps/video
 ```
 
 Everything runs from the root through `turbo run`. A new workspace goes in
@@ -104,6 +107,7 @@ Project skills live in `.agents/skills/` (symlinked as `.claude/skills/`):
 | `tanstack-start` | Routes, server functions, SSR, env, deploy. Read `SKILL.md`, then the one rule file it names. |
 | `svg-animations` | Anything drawn: the icons, their motion. |
 | `motion` | Easing and animation audits. |
+| `remotion` | Launch videos in `apps/video`. Read `SKILL.md`, then the one reference it names. |
 
 <!-- BEGIN:turborepo-agent-rules -->
 

@@ -13,6 +13,14 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "studio": {
+      "cache": false,
+      "persistent": true
+    },
+    "render": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }

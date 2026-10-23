@@ -11,7 +11,8 @@
       "!!**/.nitro",
       "!!**/.tanstack",
       "!!**/routeTree.gen.ts",
-      "!!peek.html"
+      "!!peek.html",
+      "!!.agents/skills"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },

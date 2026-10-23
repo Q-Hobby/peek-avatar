@@ -1,0 +1,4 @@
+# Renders. A finished cut gets shared, not committed.
+out
+# Past launch cuts to study. Too heavy for git; AGENTS.md keeps their notes.
+reference

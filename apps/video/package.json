@@ -1,0 +1,26 @@
+{
+  "name": "video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render",
+    "still": "remotion still",
+    "check-types": "tsc --noEmit",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@doan-labs/peek": "workspace:*",
+    "@remotion/cli": "4.0.538",
+    "@remotion/fonts": "4.0.538",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "4.0.538"
+  },
+  "devDependencies": {
+    "@peek/typescript-config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.0",
+    "typescript": "^6.0.2"
+  }
+}
